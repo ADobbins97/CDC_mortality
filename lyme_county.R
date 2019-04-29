@@ -5,19 +5,14 @@ library(urbnthemes)
 library(readr)
 library(janitor)
 library(gt)
+library(leaflet)
+library(shiny)
 
 lyme <- read_csv("LD-Case-Counts-by-County-00-17.csv") %>% 
   clean_names()
 
-ca_county <- read_csv("infectious-disease-cases-by-county-year-and-sex-2-27-19.csv") %>% 
-  clean_names() %>% 
-  filter(disease == "Lyme Disease")
-co_nymph <- read_csv("Deer_Tick_Surveillance__Nymphs__May_to_Sept__excluding_Powassan_virus__Beginning_2008.csv") %>% 
-  clean_names() %>% 
-  filter(county_centroid != "40 6546")
-co_adult <- read_csv("Deer_Tick_Surveillance__Adults__Oct_to_Dec__excluding_Powassan_virus__Beginning_2008.csv") %>% 
-  clean_names()
 
+state_cases <-
 lyme %>% 
   select(stname, cases2000, cases2001, cases2002, cases2003, cases2004, cases2005, cases2006, cases2007, cases2008, cases2009, cases2010, cases2011, cases2012, cases2013, cases2014, cases2015, cases2016, cases2017) %>% 
   group_by(stname) %>% 
@@ -26,6 +21,7 @@ lyme %>%
   gt() %>% 
   cols_label(stname = "State", 
              total = "Recorded Cases")
+
 
   lyme %>% 
   group_by(stname) %>% 
@@ -58,4 +54,15 @@ lyme %>%
     summarize(total = n()) %>% 
     arrange(desc(total)) %>% 
     slice(1:25)
+
+  
+state_cases %>%    
+ggplot() + 
+  geom_polygon(data = urbnmapr::states, mapping = aes(x = long, y = lat, group = group),
+               fill = "#a2d4ec", color = "white") +
+  geom_text(data = get_urbn_labels(map = "states"), aes(x = long, lat, label = state_abbv), 
+            size = 2) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45)
+  
+  
   
