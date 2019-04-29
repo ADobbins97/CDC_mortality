@@ -1,0 +1,12 @@
+name: Lyme_Disease_Incidence_USA
+title: Lyme_Disease_Incidence_USA
+username:
+account: alexandra-dobbins
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 897196
+bundleId: 2046127
+url: https://alexandra-dobbins.shinyapps.io/Lyme_Disease_Incidence_USA/
+when: 1556523071.68714
+asMultiple: FALSE
+asStatic: FALSE
