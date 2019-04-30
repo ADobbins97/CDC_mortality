@@ -77,7 +77,7 @@ urbn_data <-
 
 
 nymph_tick_number %>% 
-  left_join(urbn_data, by = "county_name")
+  left_join(urbn_data, by = "county_name") %>% 
   ggplot(mapping = aes(long, lat, group = group, fill = total_ticks)) +
   geom_polygon(color = "white", size = .25) +
   coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
@@ -85,14 +85,10 @@ nymph_tick_number %>%
         legend.key.width = unit(.5, "in")) +
   labs(title = "",
        fill = "Ticks Collected")
-
-  scale_fill_gradientn(labels = scales::percent,
-                       guide = guide_colorbar(title.position = "top")) +
-  theme(legend.title = element_text(),
-        legend.key.width = unit(.5, "in")) +
-  labs(fill = "Homeownership rate")
-
 # 
+
+View(nymph_tick_number %>% 
+       left_join(urbn_data, by = "county_name"))
 # dataset <- 
 #   right_join(nymph_tick_number, urbn_data, by="county_name") %>% 
 #     ggplot(mapping = aes(long, lat, group = group, fill = total_ticks))
