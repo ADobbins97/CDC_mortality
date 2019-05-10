@@ -16,7 +16,7 @@ library(rgeos)
 
 
 #New York Maps of Adult/Nymph Bacteria by County
-ny_nymphs <- read_csv("Deer_Tick_Surveillance__Nymphs__May_to_Sept__excluding_Powassan_virus__Beginning_2008.csv") %>% 
+ny_nymphs <- read_csv("rds_files /Deer_Tick_Surveillance__Nymphs__May_to_Sept__excluding_Powassan_virus__Beginning_2008.csv") %>% 
   clean_names() %>% 
   filter(county_centroid != "40 6546") %>% 
   select(year, "county_name" = county, total_ticks_collected, tick_population_density, b_burgdorferi_percent, 
@@ -32,7 +32,8 @@ ny_tick_nymphs <-
   mutate(total_ticks = log(total_ticks, b = 10))
 
 
-nymph_tick_number %>% 
+nymph_tick_ny_map <-
+  nymph_tick_number %>% 
   left_join(urbn_data, by = "county_name") %>% 
   ggplot(mapping = aes(long, lat, group = group, fill = total_ticks)) +
   geom_polygon(color = "white", size = .25) +
@@ -53,7 +54,7 @@ nymph_table <-
 ##
 #
 
-ny_adult <- read_csv("Deer_Tick_Surveillance__Adults__Oct_to_Dec__excluding_Powassan_virus__Beginning_2008.csv") %>% 
+ny_adult <- read_csv("rds_files /Deer_Tick_Surveillance__Adults__Oct_to_Dec__excluding_Powassan_virus__Beginning_2008.csv") %>% 
   clean_names() %>% 
   select(year, "county_name" = county, total_ticks_collected, tick_population_density, b_burgdorferi_percent, 
          a_phagocytophilum_percent, b_microti_percent, b_miyamotoi_percent, county_centroid)
@@ -68,6 +69,7 @@ adult_tick_number <-
   mutate(total_ticks = log(total_ticks, b = 10))
 
 
+adult_tick_ny_map <-
 adult_tick_number %>% 
   left_join(urbn_data, by = "county_name") %>% 
   ggplot(mapping = aes(long, lat, group = group, fill = total_ticks)) +
@@ -112,6 +114,25 @@ ggplot(data = shapes) +
        title = "USA Tick Data")
 
 
+#
+##
+###
+##
+#
+
+state_cases_yearmap <-
+  lyme %>% 
+  group_by(stname) %>% 
+  summarize("2000" = sum(cases2000), "2001" = sum(cases2001), "2002" = sum(cases2002), "2003" = sum(cases2003), "2004" = sum(cases2004), "2005" = sum(cases2005), "2006" = sum(cases2006), "2007" = sum(cases2007), "2008" = sum(cases2008), "2009" = sum(cases2009), "2010" = sum(cases2010), "2011" = sum(cases2011), "2012" = sum(cases2012), "2013" = sum(cases2013), "2014" = sum(cases2014), "2015" = sum(cases2015), "2016" = sum(cases2016), "2017" = sum(cases2017), sum_all = sum(c(cases2000, cases2001, cases2002, cases2003, cases2004, cases2005, cases2006, cases2007, cases2008, cases2009, cases2010, cases2011, cases2012, cases2013, cases2014, cases2015))) %>%
+  arrange(desc(sum_all)) %>% 
+  select("state_name" = stname, "2000", "2001", "2002", "2003", "2004", "2005", "2006", "2007", "2008", "2009", "2010", "2011", "2012", "2013", "2014", "2015", "2016", "2017")
+
+
+state_cases_yearmap <- gather(state_cases, "2000", "2001", "2002", "2003", "2004", "2005", "2006", "2007", "2008", "2009", "2010", "2011", "2012", "2013", "2014", "2015", "2016", "2017",
+                      key = "year", value = "cases") %>% 
+  mutate(cases = log(cases, b = 10))
+
+
 
 #Dataset of Cases per Age by Year 
 yearly_data <- read_xlsx("age_race_lyme_disease_data.xlsx") %>% 
@@ -129,4 +150,4 @@ year_data %>%
 #Dataset for 
 
 
-write_rds("Lyme_Data_Manipulation", "cdc_worked_data.rds")
+write_rds("Lyme_Data_Manipulation", "rds_files /cdc_worked_data.rds")
