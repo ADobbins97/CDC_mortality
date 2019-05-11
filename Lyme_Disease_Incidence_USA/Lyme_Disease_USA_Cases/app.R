@@ -234,6 +234,8 @@ ui <- fluidPage(
                   br(),
                   
                   plotlyOutput("NY_Bacteria_Nymph"),
+                  
+                  plotOutput("Nymph_Table"),
 
                   tabPanel(
                   
@@ -243,7 +245,9 @@ ui <- fluidPage(
                   
                         br(),
                    
-                       plotlyOutput("NY_Bacteria_Adult")
+                       plotlyOutput("NY_Bacteria_Adult"),
+                      
+                      plotOutput("Adult_Table")
                   )
                 )
               )
@@ -353,7 +357,8 @@ server <- function(input, output) {
       xlab(" ") +
       
       ylab(" ")
-
+    
+  #I was SO CLOSE to getting this to work. It was an effort to switch over to plotly, so I could have a simpler hover because I made no progress for days on HoverOpts. And I made the ocuntry outline, and the hover, but I had trouble with the volume gradient because the coordinates were non-transferable -- in Urbnmapr I joined by county name, but that wouldn't work here. With more time and less of *other* workload I would've made this work but i think I'd have to go back to square one essentially.   
     # us_cases_map %>%
     #   ggplotly(tooltip = "text") %>%
     #   style(hoverlabel = list(bgcolor = "white"), hoveron = "fill")
@@ -387,7 +392,10 @@ server <- function(input, output) {
       labs(fill = "Ticks Collected")
   })
 
-  output$NY_Bacteria_Nymph <- renderPlot({
+#Exactly the same as above map, from different dataset  
+  
+  output$NY_Bacteria_Adult <- renderPlot({
+    
     
     x2 <- urbn_data
     
@@ -421,7 +429,8 @@ server <- function(input, output) {
 
   output$Barplot_Age <- renderPlot({
     
-    #The next three plots are exactly the same, they take data from a file which has 
+    #The next three plots are exactly the same, they take data from a file which has all the types of data as columns, thus I had to gather each set before plotting it as a geom_col. I had to use geom_col because the number of cases was recorded as a cell input, and bar/histogram count() columns rather than recording cell data. 
+    #This, we have the bar plots found below, with a selector for each that controlls year being presented. 
     
     year_data_age %>%
       
@@ -430,6 +439,8 @@ server <- function(input, output) {
       filter(year == "input$year")
     
     ggplot() +
+      
+      #Replaced the gray scale with a nice couple shades of blue to clearly distinguish the columns. 
       
       geom_col(mapping = aes(x = age, y = cases, fill = ..x..)) +
       
@@ -499,6 +510,18 @@ server <- function(input, output) {
         
       )
   })
+  
+output$Nymph_Table <- renderDataTable({
+  
+  nymph_table %>%  filter(year == "input$year")
+  
+})
+
+output$Adult_Table <- renderDataTable({
+  
+  adult_table %>%  filter(year == "input$year")
+  
+})
 }
 
 # Run the application
