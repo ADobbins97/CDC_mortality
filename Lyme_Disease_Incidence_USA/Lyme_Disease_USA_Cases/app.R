@@ -513,13 +513,15 @@ server <- function(input, output) {
   
 output$Nymph_Table <- renderDataTable({
   
-  nymph_table %>%  filter(year == "input$year")
+  nymph_table %>%  filter(year == "input$year") %>% 
+    gt()
   
 })
 
 output$Adult_Table <- renderDataTable({
   
-  adult_table %>%  filter(year == "input$year")
+  adult_table %>%  filter(year == "input$year") %>% 
+    gt()
   
 })
 }
