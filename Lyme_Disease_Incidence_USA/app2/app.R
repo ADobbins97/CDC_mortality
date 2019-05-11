@@ -17,6 +17,7 @@ library(shinydashboard)
 library(tidyverse)
 library(maps)
 library(rgeos)
+library(viridis)
 
 #Open datasets to be used for rest of app
 urbn_data <-
@@ -25,7 +26,7 @@ urbn_data <-
   mutate(county_name = removeWords(county_name, " County")) %>%
   group_by(county_name)
 
-read_rds("app2/rds_files /cdc_worked_data.rds")
+read_rds("rds_files /cdc_worked_data.rds")
 
 #Setting up visual aspect of app
 
@@ -106,13 +107,13 @@ ui <- fluidPage(
         )
       )
     ),
+
 # 
 # #
 # ##
-# ###
-# ##
 # #
-#     
+# 
+    
 
     tabPanel(
       "Population Distributions",
@@ -166,12 +167,12 @@ ui <- fluidPage(
       )
     ),
 
-#     
-# #
-# ##
-# ###
-# ##
-# #
+    
+# 
+##
+###
+##
+#
 
     tabPanel(
       "Biological Information",
@@ -191,25 +192,142 @@ ui <- fluidPage(
 
           box(
             mainPanel(
-              h4("Occurrence of Four Types of Bacteria Found in New York"),
-              h5("as identified off samples collected from varying counties since 2000"),
+              tabsetPanel(
+                tabPanel(
+              h4("Occurrence of Four Types of Bacteria Found in Adult Ticks"),
+              h5("as identified off samples collected from varying parts of New York since 2000"),
               br(),
-              plotlyOutput("NY_Bacteria"),
+              plotlyOutput("NY_Bacteria_Nymph"),
                 br(),
-                h5("Brief description of the data observed")
+                h5("Brief description of the data observed"),
+              tabPanel(
+                h4("Occurrence of Four Types of Bacteria Found in Nymph Ticks"),
+                       h5("as identified off samples collected from varying parts of New York since 2000"),
+                       br(),
+                       plotlyOutput("NY_Bacteria_Adult"),
+                       br(),
+                       h5("Brief description of the data observed"))
               )
             )
           )
         )
      )
    )
-)
+)))
 
 
 server <- function(input, output) {
 
+output$US_Reported_Static <- renderPlotly({
+ 
+  ggplot(data = shapes2) +
+    geom_sf(mapping = aes(fill = avg_cases))+
+    labs(fill = "Unit", 
+         title = "USA Tick Data")
+  
+})
+
+output$US_Reported_Yearly <- renderPlotly({
+  
+  shapes <- shapes %>%  filter(year == "input$year")
+  
+  us_cases_map <-
+    ggplot(data = shapes) +
+    geom_sf(mapping = aes(fill = cases))+
+    labs(fill = "Reported Cases", 
+         caption = "Source: CDC") +
+    xlab(" ") +
+    ylab(" ")
+  
+  us_cases_map %>% 
+    ggplotly(tooltip = "text") %>% 
+    style(hoverlabel = list(bgcolor = "white"), hoveron = "fill")
+  
+})
 
 
+output$NY_Bacteria_Nymph <- renderPlot({
+  
+  x1 <- urbn_data
+  y1 <- ny_tick_nymphs %>% filter(year == "input$year")
+  
+  left_join(x1, y1, by = "county_name") %>%
+    ggplot(mapping = aes(long, lat, group = group, fill = total_ticks)) +
+    geom_polygon(color = "white", size = .25) +
+    coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+    theme(
+      legend.title = element_text(),
+      legend.key.width = unit(.5, "in")
+    ) +
+    labs(fill = "Ticks Collected")
+  
+})
+
+output$NY_Bacteria_Nymph <- renderPlot({
+  
+  x2 <- urbn_data
+  y2 <- ny_adult %>%  filter(year == "input$year")
+  
+  left_join(x2, y2, by = "county_name") %>% 
+    ggplot(mapping = aes(long, lat, group = group, fill = total_ticks)) +
+    geom_polygon(color = "black", size = .25) +
+    coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+    theme(legend.title = element_text(),
+          legend.key.width = unit(.5, "in")) +
+    labs(title = "",
+         fill = "Ticks Collected")
+  
+})
+  
+
+output$Barplot_Age <- renderPlot({
+  
+ 
+    year_data_age %>%
+    select(year, age, cases) %>%
+    filter(year == "input$year")
+    ggplot() +
+    geom_col(mapping = aes(x = age, y = cases, fill = ..x..))+
+    coord_flip() +
+    xlab("Age") +
+    ylab("Reported Cases") +
+    labs(title = "National Reported Cases of Lyme Disease by Age Group", 
+         caption = "Source: CDC")
+  
+})
+
+output$Barplot_Race <- renderPlot({
+  
+
+    year_data_race %>%
+    select(year, race, cases) %>%
+    filter(year == "input$year") %>% 
+    ggplot() +
+    geom_col(mapping = aes(x = race, y = cases, fill = ..x..))+
+    coord_flip() +
+    xlab("Race") +
+    ylab("Reported Cases") +
+    labs(title = "National Reported Cases of Lyme Disease by Race", 
+         caption = "Source: CDC") 
+  
+})
+
+output$Barplot_Gender <- renderPlot({
+  
+
+    year_data_gender %>%
+    filter(year == "input$year") %>% 
+    select(year, gender, cases) %>%
+    ggplot() +
+    geom_col(mapping = aes(x = gender, y = cases, fill = ..x..))+
+    xlab("Gender") +
+    ylab("Reported Cases") +
+    labs(title = "National Reported Cases of Lyme Disease by Gender", 
+         caption = "Source: CDC")
+  
+})
+  
+  
 }
 
 # Run the application
